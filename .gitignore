@@ -1,0 +1,68 @@
+# .gitignore - Files and folders to exclude from version control
+# This file prevents sensitive data, temporary files, and build artifacts from being committed to Git
+
+# ============================================================================
+# .NET Core / ASP.NET Core specific exclusions
+# ============================================================================
+
+# Build results and compiled binaries
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files
+*.userprefs
+*.pidb
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.sbr
+*.sdf
+*.opensdf
+*.unsuccessfulbuild
+*.ipch
+*.pgc
+*.pgd
+*.rsp
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.vssscc
+.builds
+
+# ASP.NET Core specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# User secrets - contains sensitive configuration data
+secrets.json
+appsettings.*.json.user

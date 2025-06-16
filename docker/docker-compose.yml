@@ -1,0 +1,93 @@
+# Docker Compose configuration for MyImage Photo Printing development environment
+# This file defines the infrastructure services needed for local development
+# It creates isolated containers for MongoDB and Redis to avoid conflicts with your system
+
+version: '3.8'
+
+services:
+  # MongoDB database service - stores all application data including users, photos, orders
+  # Uses MongoDB 6.0 which supports the latest features used in our database design
+  mongodb:
+    image: mongo:6.0
+    container_name: myimage_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"  # Exposes MongoDB on localhost:27017 for your .NET application
+    environment:
+      # MongoDB root credentials - change these for production deployment
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: myimage_dev_password
+      MONGO_INITDB_DATABASE: myimage  # Creates initial database for our application
+    volumes:
+      # Persists MongoDB data between container restarts
+      - mongodb_data:/data/db
+      # Initialization script to create application user and collections
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - myimage_network
+
+  # Redis cache service - used for session management and frequently accessed data
+  # Improves performance by caching user sessions, photo metadata, and pricing data
+  redis:
+    image: redis:7-alpine  # Alpine version for smaller footprint
+    container_name: myimage_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"  # Redis default port for your .NET caching service
+    command: redis-server --appendonly yes  # Enables data persistence
+    volumes:
+      # Persists Redis data for session continuity during development
+      - redis_data:/data
+    networks:
+      - myimage_network
+
+  # MongoDB Express - Web-based MongoDB admin interface (development only)
+  # Provides GUI for viewing and managing database collections during development
+  mongo-express:
+    image: mongo-express:latest
+    container_name: myimage_mongo_express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"  # Access at http://localhost:8081
+    environment:
+      # Connects to our MongoDB instance using admin credentials
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: myimage_dev_password
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+      # Basic authentication for the web interface
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongodb  # Ensures MongoDB starts before Mongo Express
+    networks:
+      - myimage_network
+
+  # Redis Commander - Web-based Redis admin interface (development only)
+  # Provides GUI for viewing and managing Redis cache during development
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: myimage_redis_commander
+    restart: unless-stopped
+    ports:
+      - "8082:8081"  # Access at http://localhost:8082
+    environment:
+      REDIS_HOSTS: "local:redis:6379"  # Connects to our Redis instance
+    depends_on:
+      - redis  # Ensures Redis starts before Redis Commander
+    networks:
+      - myimage_network
+
+# Persistent volumes for data storage
+# These ensure your development data persists between container restarts
+volumes:
+  mongodb_data:
+    driver: local  # Stores data locally on your Windows machine
+  redis_data:
+    driver: local
+
+# Custom network for service communication
+# Isolates our services and allows them to communicate using service names
+networks:
+  myimage_network:
+    driver: bridge  # Standard Docker bridge network for Windows
